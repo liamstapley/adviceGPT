@@ -1,121 +1,102 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useMemo, useState } from 'react'
 import './App.css'
 
+const RESPONSES = [
+  "This is absolutely a character-building arc. Please proceed dramatically.",
+  'Bold move. I respect the chaos.',
+  'Not ideal, but at least the story is getting interesting.',
+  'I prescribe one snack, one deep breath, and a wildly confident comeback.',
+  'Honestly? That sounds like a future “remember when” moment.',
+  'Plot twist energy detected. Keep going.',
+  'That situation is loud, but your aura can be louder.',
+  'This feels temporary. Your comeback will be permanent.',
+  'The vibes are unstable, but you are not.',
+  'This is premium lore for your autobiography.',
+]
+
+const pickReply = () => RESPONSES[Math.floor(Math.random() * RESPONSES.length)]
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [prompt, setPrompt] = useState('')
+  const [isThinking, setIsThinking] = useState(false)
+  const [messages, setMessages] = useState([
+    {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      text: "Welcome to AdviceGPT. Share what’s on your mind.",
+    },
+  ])
+
+  const canSubmit = useMemo(
+    () => prompt.trim().length > 0 && !isThinking,
+    [prompt, isThinking],
+  )
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    const cleanedPrompt = prompt.trim()
+    if (!cleanedPrompt || isThinking) return
+
+    setMessages((current) => [
+      ...current,
+      { id: crypto.randomUUID(), role: 'user', text: cleanedPrompt },
+    ])
+    setPrompt('')
+    setIsThinking(true)
+
+    setTimeout(() => {
+      setMessages((current) => [
+        ...current,
+        { id: crypto.randomUUID(), role: 'assistant', text: pickReply() },
+      ])
+      setIsThinking(false)
+    }, 600)
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <main className="app-shell">
+      <section className="chat-card">
+        <header className="chat-head">
+          <div className="brand-dot" aria-hidden="true" />
+          <div>
+            <p className="eyebrow">AdviceGPT</p>
+            <h1>Trusted perspective, instantly.</h1>
+          </div>
+        </header>
+
+        <div className="chat-log" aria-live="polite">
+          {messages.map((message) => (
+            <article
+              key={message.id}
+              className={`bubble bubble-${message.role}`}
+              aria-label={`${message.role} message`}
+            >
+              <p>{message.text}</p>
+            </article>
+          ))}
+          {isThinking && (
+            <article className="bubble bubble-assistant bubble-thinking">
+              <span />
+              <span />
+              <span />
+            </article>
+          )}
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+
+        <form className="chat-input-wrap" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+            placeholder="Ask for advice..."
+            aria-label="Advice prompt"
+          />
+          <button type="submit" disabled={!canSubmit}>
+            Send
+          </button>
+        </form>
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 
